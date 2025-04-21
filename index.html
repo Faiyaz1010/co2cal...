@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Auto-Calculated Table</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .data-entry, .saved-data {
+      margin-top: 20px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    table {
+      border-collapse: collapse;
+      color: rgb(32, 31, 32);
+    }
+    th, td {
+      border: 1px solid #999;
+      padding: 8px;
+      text-align: center;
+      height: 25px;
+    }
+    input[type="text"], input[type="date"] {
+      width: 100px;
+      text-align: center;
+      height: 30px;
+    }
+    input[readonly] {
+      background-color: #f0f0f0;
+      color: #555;
+      pointer-events: none;
+      height: 30px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>中山鉄工所本社net zero計算</h2>
+
+  <div class="data-entry">
+    <table id="entryTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <script>
+            for (let i = 1; i <= 26; i++) {
+              document.write(`<th>Row${i}</th>`);
+            }
+          </script>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="date" id="entryDate" /></td>
+          <script>
+            for (let i = 1; i <= 26; i++) {
+              let readonly = (i >= 9 && i <= 15) || (i >= 16 && i <= 17) || (i >= 18 && i <= 22) || i === 23 || i === 25 || i === 26 ? 'readonly' : '';
+              document.write(`<td><input type="text" id="row${i}" ${readonly}></td>`);
+            }
+          </script>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <button onclick="saveData()">Save Data</button>
+    <!-- Date Filter UI -->
+    <h3>Filter Entries</h3>
+    <div>
+      From: <input type="date" id="fromDate" />
+      To: <input type="date" id="toDate" />
+      <button onclick="filterData()">Filter</button>
+    </div>
+
+  <h3>Saved Entries</h3>
+  <div class="saved-data">
+    <table id="savedTable">
+      <thead>
+        <tr>
+          <th>検針期間FROM</th>
+          <script>
+            for (let i = 1; i <= 26; i++) {
+              document.write(`<th>Row${i}</th>`);
+            }
+          </script>
+        </tr>
+      </thead>
+      <tbody id="savedBody"></tbody>
+    </table>
+  </div>
+
+  <div id="filterResult" style="margin-top: 20px;"></div>
+
+  <script>
+    function getNumericValue(rowId) {
+      const val = document.getElementById(`row${rowId}`).value.trim();
+      return val === "" ? 0 : parseFloat(val);
+    }
+
+    function saveData() {
+      const date = document.getElementById("entryDate").value;
+      if (!date) {
+        alert("Please select a date");
+        return;
+      }
+
+      for (let i = 9; i <= 15; i++) {
+        document.getElementById(`row${i}`).value = 2.3;
+      }
+
+      const row2 = getNumericValue(2);
+      const row3 = getNumericValue(3);
+      const row4 = getNumericValue(4);
+      const row5 = getNumericValue(5);
+      const row6 = getNumericValue(6);
+      const row7 = getNumericValue(7);
+      const row8 = getNumericValue(8);
+      const row24 = getNumericValue(24);
+
+      const row9 = 0.461;
+      const row10 = 3;
+      const row11 = 2.21;
+      const row12 = 2.322;
+      const row13 = 2.489;
+      const row14 = 2.619;
+      const row15 = 0.54;
+
+      document.getElementById("row10").value = row10.toFixed(2);
+      document.getElementById("row16").value = (row2 * row9).toFixed(2);
+      document.getElementById("row17").value = (row3 * row10).toFixed(2);
+      document.getElementById("row18").value = (row4 * row11).toFixed(2);
+      document.getElementById("row19").value = (row5 * row12).toFixed(2);
+      document.getElementById("row20").value = (row6 * row13).toFixed(2);
+      document.getElementById("row21").value = (row7 * row14).toFixed(2);
+      document.getElementById("row22").value = (row8 * row15).toFixed(2);
+
+      const row16 = getNumericValue(16);
+      const row22 = getNumericValue(22);
+      const row23 = row16 + row22;
+      const row25 = row24 * row9;
+      const row26 = row23 - row25;
+
+      document.getElementById("row23").value = row23.toFixed(2);
+      document.getElementById("row25").value = row25.toFixed(2);
+      document.getElementById("row26").value = row26.toFixed(2);
+
+      const row = document.createElement("tr");
+      const dateCell = document.createElement("td");
+      dateCell.innerText = date;
+      row.appendChild(dateCell);
+
+      for (let i = 1; i <= 26; i++) {
+        const input = document.getElementById(`row${i}`);
+        const cell = document.createElement("td");
+        const val = input.value.trim();
+        cell.innerText = val === "" ? "0" : val;
+        row.appendChild(cell);
+        input.value = "";
+      }
+
+      document.getElementById("savedBody").appendChild(row);
+      document.getElementById("entryDate").value = "";
+    }
+
+    function filterData() {
+      const fromDate = new Date(document.getElementById("fromDate").value);
+      const toDate = new Date(document.getElementById("toDate").value);
+      const savedBody = document.getElementById("savedBody");
+      const rows = savedBody.getElementsByTagName("tr");
+
+      if (isNaN(fromDate) || isNaN(toDate)) {
+        alert("Please select both From and To dates.");
+        return;
+      }
+
+      let totalPerColumn = Array(26).fill(0);
+
+      for (let row of rows) {
+        const date = new Date(row.cells[0].innerText);
+        if (date >= fromDate && date <= toDate) {
+          for (let i = 1; i <= 26; i++) {
+            totalPerColumn[i - 1] += parseFloat(row.cells[i].innerText) || 0;
+          }
+        }
+      }
+
+      let html = `<h4>Aggregated Data (From ${fromDate.toDateString()} To ${toDate.toDateString()}):</h4>`;
+      html += "<table border='1'><tr><th>Row</th><th>Total</th></tr>";
+      for (let i = 1; i <= 26; i++) {
+        html += `<tr><td>Row${i}</td><td>${totalPerColumn[i - 1].toFixed(2)}</td></tr>`;
+      }
+      html += "</table>";
+      document.getElementById("filterResult").innerHTML = html;
+    }
+  </script>
+
+</body>
+</html>
